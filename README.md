@@ -1,131 +1,115 @@
-# Deep Q-Learning Agent for Traffic Signal Control
+Reinforcement learning is about taking suitable action to maximize reward in a particular situation. While researching the possible applications of such technique, I came across such examples as resource management (learn to allocate and schedule computer resources to waiting jobs, with the objective to minimize the average job slowdown), optimizing chemical reactions (in order to reduce time-consuming and trial-and-error work in a relatively stable environment), etc. However, the idea that resonated with me the most, was creating an intelligent traffic light control system in order to regulate the situation around it, based on the current state.	Modern society relies heavily on vehicles to get around and the amount of traffic steadily increases over the last decades, however, our infrastructure is struggling to keep up. It is very common for a vehicle to arrive at an intersection and just stand there, waiting to pass, with no other traffic around. Such mismanagement gets amplified even more during the rush hour. Two solutions are possible in order to address this issue:
 
-A framework where a deep Q-Learning Reinforcement Learning agent tries to choose the correct traffic light phase at an intersection to maximize the traffic efficiency.
+- Expand the roads to handle the traffic flow (this, however, is time consuming and requires a lot of funds, limiting the throughput during construction)
+- Improve the traffic signal controllers (a more desirable approach, because it reuses the current equipment and has lower cost)
 
-I have uploaded this here in order to help anyone that is searching for a good starter point for deep reinforcement learning with SUMO. This code is extracted from my master thesis and it represents a simplified version of the code used for my thesis work. I hope you can find this repository useful for your project.
+There were other attempts to solve this problem using deep reinforcement learning. In fact, I am using this [source](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control) code in order to help me achieve my goal. However, the urban environment cited above, does not contain pedestrians, an important part of any traffic scenario, therefore, the goal of my project is to augment the environment to add pedestrians and train the agent to react based on the amount of vehicles and pedestrians at the intersection.
 
-## *Improved version - 12 Jan 2020*
+![Generic Working Process of TLSC](Images/Roadboost.png)
 
-*Changelog:*
-- *Each traning result is now stored in a folder structure, with each result being numbered with an increasing integer.*
-- *New Test Mode: test the model versions you created by running a test episode with comparable results.*
-- *Enabled a dynamic creation of the model by specifying, for each training, the width and the depth of the feedforward neural network the is going to be used.*
-- *The training of the neural network is now executed at the end of each episode, instead of during the episode. This improve the overall speed of the algorithm.*
-- *The code for the neural network is now written using Keras and Tensorflow 2.0.*
-- *Added a settigs file (.ini) for both training and testing.*
-- *Improved the tracking of the durations of both simulation and training of each episode.*
-- *Added a minimum number of samples required into the memory in order to begin training.*
-- *Improved the naming and the usage of the variables dedicated to save the stats of the episode.*
-- *Improved docstrings of functions.*
+The environment is represented by a 4-way intersection, where 4 lanes per arm approach the intersection from compass directions and lead to 4 lanes per arm leaving the intersection. The traffic light control system (TLCS) is represented by a single agent (a deep Q-learning neural network) that interacts with the environment using a state s, 
+an action a, and a reward r.
 
-## Getting Started
+During the simulation the agent samples the environment and receives a state st and a reward rt, where t is the current timestamp. According to the state st and the prior knowledge, the agent chooses the next action at. 
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. In my opinion, these are the easiest steps to follow in order to be able to run the algorithm starting from scratch. A computer with an NVIDA GPU is strongly recommended.
+There are 8 different traffic lights in the environment, each of them regulating one or more adjacent lanes. The subscript denotes the position of every traffic light: for example, tlN regulates all traffic coming from north and wants to turn right or go straight; tlNL regulates traffic coming from north, but just for vehicles that want to turn left. Pedestrian traffic lights (there are two: going north to south, south to north and west to east and east to west) get turned on at the same time as the light for vehicles in the same direction. 
 
-1. Download Anaconda ([official site](https://www.anaconda.com/distribution/#download-section)) and install.
-2. Download SUMO ([official site](https://www.dlr.de/ts/en/desktopdefault.aspx/tabid-9883/16931_read-41000/)) and install.
-3. Follow [this](https://towardsdatascience.com/tensorflow-gpu-installation-made-easy-use-conda-instead-of-pip-52e5249374bc) short guide in order to install tensorflow-gpu correctly and problem-free. Basically the guide tells you to open Anaconda Prompt, or any terminal, and type the following commands:
-```
-conda create --name tf_gpu
-activate tf_gpu
-conda install tensorflow-gpu
-```
+1000 vehicles and 240 pedestrians were generated according to Weibull distribution in order to simulate different traffic scenarios over 100 epochs. Every training episode starts out slow to simulate low load, the amount of traffic gradually increases as the episode progresses until it reaches its peak (equivalent to a rush hour) and gradually slows down. 75% of the traffic goes straight, the rest turns either left or right.
 
-I've used the following software versions: Python 3.7, SUMO traffic simulator 1.2.0, tensorflow 2.0
+![Position of every traffic light in the environment](Images/Positions.png)
 
-## Running the algorithm
+The traffic light phase is chosen based on 4 predetermined phases:
+- green for lanes in the north and south arm dedicated to turn right or go straight, includes pedestrian light;
+- green for lanes in the north and south arm dedicated to turn left;
+- green for lanes in the east and west arm dedicated to turn right or go straight, includes pedestrian light;
+- green for lanes in the east and west arm dedicated to turn left.
 
-- Now you are ready to run the algorithm. To do so, you need to run the file **training_main.py** by executing the following simple command on the Anaconda prompt or any other terminal and the agent will start the training:
-```
-python training_main.py
-```
+If the action chosen at a certain timestamp is different from the action taken previously, a 4 second yellow phase is initiated between the two actions, otherwise if the action is equivalent to the previous one, there is no yellow phase and the current state persists.
+In reinforcement learning, the reward represents the feedback from the environment after the agent had chosen the action. The agent uses the reward to understand the result of the current action and improve the model for further action choices. In this case the reward is calculated based on the decrease of the cumulative waiting time after the action taken. 
 
-You don't need to open any SUMO software, since everything it is loaded and done in the background. If you want to see the training process as it goes, you need to set to *True* the parameter *gui* contained in the file **training_settings.ini**. Keep in mind that viewing the simulation is very slow compared to the background training and you also need to close SUMO-GUI every time an episode ends, which is not practical.
+The learning mechanism in this project is called Deep Q-Learning, which is a combination of deep neural networks and Q-Learning. Q-Learning is a form of model-free reinforcement learning, it consists of assigning a value (Q-value) to an action taken from a precise state of the environment. Here is the formula to calculate the Q-value after every action taken:
 
-The file **training_settings.ini** contains all the different parameters used by the agent in the simulation. The defualt parameters are not that optimized, so is very likely that a bit of testing will increase the current performance of the agent.
+![](Images/Formula.png)
 
-When the training ends, the results will be stored in "*./model/model_x/*" where *x* is an increasing integer starting from 1, generated automatically. Results will include some graphs, the data used to generate the graphs, the trained neural network and a copy of the ini file where the agent settings are.
+where Q(s<sub>t</sub>,a<sub>t</sub>) is the value of the action a<sub>t</sub> taken from state s<sub>t</sub>. The reward  r<sub>t+1</sub> is the reward received after taking the action a<sub>t</sub> in state s<sub>t</sub>.The term Q'(s<sub>t+1</sub>,a<sub>t+1</sub>)is the Q-value associated with action a<sub>t+1</sub> in the state after  taking the action a<sub>t</sub> in state s<sub>t</sub>. The discount factor denotes a small penalization of the future reward compared to the previous reward. This way the agent can choose action at not just based on the immediate reward, but also on the expected future discounted rewards.
 
-Now you can finally test the trained agent. To do so, you will run the file **testing_main.py**. The test involve a single episode of simulation, and the results of the test will be stored in "*./model/model_x/test/*" where *x* is the number of the model that you specified to test. The number of the model to test and other useful parameters are contained in the file **testing_settings.ini**.
+A deep neural network is built using Tensorflow 2.0 and Keras in order to map a state of the environment st to Q-values representing the values associated with actions at. The input state consists of 88 neurons, there are 5 hidden layers of 400 neurons each. The output layer consists of 4 neurons, representing the 4 possible actions.
 
-**Training time:** ~27 seconds per episode, 45min for 100 episodes, on a computer equipped with i7-3770K, 8GB RAM, NVIDIA GTX 970, SSD.
+![Model Structure](Control_System/models/model_2/model_structure.png)
 
-## The code structure
+As a result of the training, the queue length is gradually going down until it reaches 1-2 vehicles/pedestrians on average. The agent received a negative reward based on the cumulative waiting time change after the actions taken. 
 
-The main file is **training_main.py**. It basically handles the main loop that starts an episode on every iteration. At the end it saves the network and it also save 3 graphs: negative reward, cumulative wait time and average queues. 
+#### GETTING STARTED:
 
-Overall the algorithm is divided into classes that handle different part of the training.
-- The **Model** class is used to define everything about the deep neural network and it also contains some functions used to train the network and predict the outputs. In the **model.py** file, two different **model** classes are defined: one used only during the training, one used only during the testing.
-- The **Memory** class handle the memorization for the experience replay mechanism. A function is used to add a sample into the memory, while another function retrieves a batch of samples from the memory.
-- The **Simulation** class handles the simulation. In particular, the function *run* allows the simulation of one episode. Also, some other functions are used during *run* in order to interact with SUMO, for example retrieving the state of the environment (*get_state*), set the next green light phase (*_set_green_phase*) or preprocess the data in order to train the neural network (*_replay*). There are two files that contain a slightly different **Simulation** class: **training_simulation.py** and **testing_simulation.py**. Which one is loaded depends of course if we are doing the training phase or the testing phase.
-- The **TrafficGenerator** class contain the function dedicated to defining the route of every vehicle in one epsiode. The file created is *episode_routes.rou.xml* which is placed in the "intersection" folder.
-- The **Visualization** class is just used for plotting data.
-- In the **utils.py** file are contained some directory-related functions, such as automatically handle the creations of new model versions and the loading of existing models for the testing.
 
-In the "intersection" folder there is a file called *environment.net.xml* which defines the structure of the environment, and it was created using SUMO NetEdit. The other file *sumo_config.sumocfg* it is basically a linker between the environment file and the route file. 
+The following steps are necessary in order to be able to run the project:
+1. Download and install Anaconda 
+2. Download and install SUMO ([official site](http://sumo.sourceforge.net/))
+3. Install tensorflow 2.0
 
-## The settings explained
 
-The settings used during the training and contained in the file **training_settings.ini** are the following:
-- **gui**: enable or disable the SUMO interface during the simulation.
-- **total_episodes**: the number of episodes that are going to be run.
-- **max_steps**: the duration of each episode, with 1 step = 1 second (default duration in SUMO).
-- **n_cars_generated**: the number of cars that are generated during a single episode.
-- **green_duration**: the duration in seconds of each green phase.
-- **yellow_duration**: the duration in seconds of each yellow phase.
-- **num_layers**: the number of hidden layers in the neural network.
-- **width_layers**: the number of neuron per layer in the neural network.
-- **batch_size**: the number of samples retrieved from the memory for each training iteration.
-- **training_epochs**: the number of training iterations executed at the end of each episode.
-- **learning_rate**: the learning rate defined for the neural network.
-- **memory_size_min**: the min number of samples needed into the memory to enable the training of the neural network.
-- **memory_size_max**: the max number of samples that the memory can contain.
-- **num_states**: the size of the state of the env from the agent perspective (a change here requires also algorithm changes).
-- **num_actions**: the number of possible actions (a change here requires also algorithm changes).
-- **gamma**: the gamma parameter of the bellman equation.
-- **models_path_name**: the name of the folder that will contains the model versions and so the results. Useful to change when you want to group up some models specifying a recognizable name.
-- **sumocfg_file_name**: the name of the .sumocfg file inside the *intersection* folder.
+#### RUNNING THE ALGORITHM:
+Once the environment is set up, the directory needs to be changed to the directory containing all the files related to the project. In order to run the algorithm python training_main.py  command needs to be run on the Anaconda prompt or any other terminal and the agent will start training.
 
-The settings used during the testing and contained in the file **testing_settings.ini** are the following (some of them have to be the same of the ones used in the relative training):
-- **gui**: enable or disable the SUMO interface during the simulation.
-- **max_steps**: the duration of the episode, with 1 step = 1 second (default duration in SUMO).
-- **n_cars_generated**: the number of cars generated during the test episode.
-- **episode_seed**: the random seed used for car generation, that should be a seed not used during training.
-- **green_duration**: the duration in seconds of each green phase.
-- **yellow_duration**: the duration in seconds of each yellow phase.
-- **num_states**: the size of the state of the env from the agent perspective (same as training).
-- **num_actions**: the number of possible actions (same as training).
-- **models_path_name**: The name of the folder where to search for the specified model version to load.
-- **sumocfg_file_name**: the name of the .sumocfg file inside the *intersection* folder.
-- **model_to_test**: the version of the model to load for the test. 
+It is not necessary to open any SUMO software, everything is loaded and running in the background. There is an option to have a gui interface for every training episode, in order to do that, the gui parameter in training_settings.ini needs to be set to TRUE. This, however, will result in slower training, because the user has to press the start button every time for the training simulation to start.
 
-## The Deep Q-Learning Agent
 
-**Framework**: Q-Learning with deep neural network.
+#### CONTENTS:
 
-**Context**: traffic signal control of 1 intersection.
+* intersection - all the files needed to run the simulation in sumo-gui
+* ped_environment.net.xml - file created in NetEdit (editing software for SUMO) in order to create all the edges if the environment
+* ped_episode_routes5.rou.xml - file created using generator.py to generate traffic according to Weibull distribution and specify the route of every vehicle/pedestrian
+* ped_sumo_config - configuration file to run the created environment in SUMO, connection between the environment file and the routes file.
+* models - includes the model result after running the simulation
+* model_2 - training results, includes charts depicting changes in the delay, queue length and cumulative rewards, as well as txt files with numbers that correspond to the points on the charts. Also contains the image of the model structure.
+- test - test simulation results. 
+* generator.py - a file to generate traffic according to Weibull distribution. 1000 cars and 240 pedestrians were generated. 75% of the traffic goes straight, the rest turns right or left.
+* memory.py - handles the memorization for the experience replay mechanism. A function is used to add a sample into the memory, while another function retrieves a batch of samples from the memory.
+* model.py - contains models used for training and testing episodes
+* testing_main.py - handles the testing loop that starts the testing episode. Saves queue and reward graphs
+* testing_settings.ini - settings to define such parameters as the input state, traffic amount, etc.
+* testing_simulation.py - responsible for getting state of the environment, setting the next green phase or preprocess the data to train the neural network during testing.
+* training_main.py - handles the main loop that starts an episode on every iteration. At the end it saves the network and it also saves 3 graphs: negative reward, cumulative wait time and average queues.
+* training_settings.ini - settings to define such parameters as the input state, traffic amount, etc.
+* training_simulation.py - responsible for getting state of the environment, setting the next green phase or preprocess the data to train the neural network during training.
+* utils.py - automatically handles the creation of a new model version or loads the existing model for testing.
+* visualization.py - used for plotting data
 
-**Environment**: a 4-way intersection with 4 incoming lanes and 4 outgoing lanes per arm. Each arm is 750 meters long. Each incoming lane defines the possible directions that a car can follow: left-most lane dedicated to lef-turn only; right-most lane dedicated to right-turn and straight; two middle lanes dedicated to only going straight. The layout of the traffic light system is as follows: the left-most lane has a dedicated traffic-light, while the others three lanes shares the same traffic light.
 
-**Traffic generation**: For every episode, 1000 cars are created. The cars arrival timing are defined according to a Weibull distribution with shape 2 (fast increase of arrival until peak just before the mid-episode, then slow decreasing). 75% of vehicles spawned will go straight, 25% will turn left or right. Every vehicle have the same probability to be spawned at the beginning of every arm. On every episode the cars are generated randomly so is not possible to have two equivalent episode in term of vehicle's arrival layout.
+#### SETTINGS:
+The settings used during the training and contained in the file training_settings.ini are the following:
+* gui: enable or disable the SUMO interface during the simulation.
+* total_episodes: the number of episodes that are going to be run.
+* max_steps: the duration of each episode, with 1 step = 1 second (default duration in SUMO).
+* n_cars_generated: the number of cars that are generated during a single episode.
+* green_duration: the duration in seconds of each green phase.
+* yellow_duration: the duration in seconds of each yellow phase.
+* num_layers: the number of hidden layers in the neural network.
+* width_layers: the number of neurons per layer in the neural network.
+* batch_size: the number of samples retrieved from the memory for each training iteration.
+* training_epochs: the number of training iterations executed at the end of each episode.
+* learning_rate: the learning rate defined for the neural network.
+* memory_size_min: the min number of samples needed into the memory to enable the training of the neural network.
+* memory_size_max: the max number of samples that the memory can contain.
+* num_states: the size of the state of the env from the agent perspective (a change here requires also algorithm changes).
+* num_actions: the number of possible actions (a change here requires also algorithm changes).
+* gamma: the gamma parameter of the bellman equation.
+* models_path_name: the name of the folder that will contains the model versions and so the results. Useful to change when you want to group up some models specifying a recognizable name.
+* sumocfg_file_name: the name of the .sumocfg file inside the intersection folder.
+The settings used during the testing and contained in the file testing_settings.ini are the following (some of them have to be the same of the ones used in the relative training):
+* gui: enable or disable the SUMO interface during the simulation.
+* max_steps: the duration of the episode, with 1 step = 1 second (default duration in SUMO).
+* n_cars_generated: the number of cars generated during the test episode.
+* episode_seed: the random seed used for car generation, that should be a seed not used during training.
+* green_duration: the duration in seconds of each green phase.
+* yellow_duration: the duration in seconds of each yellow phase.
+* num_states: the size of the state of the env from the agent perspective (same as training).
+* num_actions: the number of possible actions (same as training).
+* models_path_name: The name of the folder where to search for the specified model version to load.
+* sumocfg_file_name: the name of the .sumocfg file inside the intersection folder.
+* model_to_test: the version of the model to load for the test.
 
-**Agent ( Traffic Signal Control System - TLCS)**:
-- **State**: discretization of incoming lanes into presence cells, which identify the presence or absence of at least 1 vehicle inside them. There are 20 cells per arm. 10 of them are placed along the left-most lane while the others 10 are placed in the others three lane. 80 cells in the whole intersection.
-- **Action**: choiche of the traffic light phase from a 4 possible predetermined phases, which are the described below. Every phase has a duration of 10 seconds. When the phase changes, a yellow phase of 4 seconds is activated.
-  - North-South Advance: green for lanes in the north and south arm dedicated to turn right or go straight.
-  - North-South Left Advance: green for lanes in the north and south arm dedicated to turn left. 
-  - East-West Advance: green for lanes in the east and west arm dedicated to turn right or go straight.
-  - East-West Left Advance: green for lanes in the east and west arm dedicated to turn left. 
-- **Reward**: change in *cumulative waiting time* between actions, where the waiting time of a car is the number of seconds spent with speed=0 since the spawn; *cumulative* means that every waiting time of every car located in an incoming lane is summed. When a car leaves an incoming lane (i.e. crossed the intersection), its waiting time is not considered anymore, therefore is a positive reward for the agent.
-- **Learning mechanism**: the agent make use of the Q-learning equation *Q(s,a) = reward + gamma • max Q'(s',a')* to update the action values and a deep neural network to learn the state-action function. The neural network is fully connected with 80 neurons as input (the state), 5 hidden layers of 400 neurons each and the output layers with 4 neurons representing the 4 possible actions. Also, a mechanism of experience replay is implemented: the experience of the agent is stored in a memory and, at the end of each episode, multiple batches of randomized samples are extracted from the memory and used to train the neural network once the action values has been updated with the Q-learning equation.
+*The last section (SETTINGS) has been copied from the readme file [here](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control). The original creator outlined the settings perfectly, and could not have written it better.
 
-## Author
 
-* **Andrea Vidali** - *University of Milano-Bicocca*
-
-If you need further information, I suggest you to look at my master thesis [here](https://www.dropbox.com/s/aqhdp0q6qhpx8q9/780747_Vidali_tesi.pdf?dl=0) or write me an e-mail at info@andreavidali.com.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
+A video of me presenting the results of the project can be found [here](https://www.loom.com/share/2b6dada4d69842b1a3b3606dde4f0ce9).
