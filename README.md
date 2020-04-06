@@ -31,13 +31,17 @@ In reinforcement learning, the reward represents the feedback from the environme
 
 The learning mechanism in this project is called Deep Q-Learning, which is a combination of deep neural networks and Q-Learning. Q-Learning is a form of model-free reinforcement learning, it consists of assigning a value (Q-value) to an action taken from a precise state of the environment. Here is the formula to calculate the Q-value after every action taken:
 
-![](Images/Formula.png)
+<p align="center"> 
+<img src="Images/Formula.png">
+</p>
 
 where Q(s<sub>t</sub>,a<sub>t</sub>) is the value of the action a<sub>t</sub> taken from state s<sub>t</sub>. The reward  r<sub>t+1</sub> is the reward received after taking the action a<sub>t</sub> in state s<sub>t</sub>.The term Q'(s<sub>t+1</sub>,a<sub>t+1</sub>)is the Q-value associated with action a<sub>t+1</sub> in the state after  taking the action a<sub>t</sub> in state s<sub>t</sub>. The discount factor denotes a small penalization of the future reward compared to the previous reward. This way the agent can choose action at not just based on the immediate reward, but also on the expected future discounted rewards.
 
 A deep neural network is built using Tensorflow 2.0 and Keras in order to map a state of the environment st to Q-values representing the values associated with actions at. The input state consists of 88 neurons, there are 5 hidden layers of 400 neurons each. The output layer consists of 4 neurons, representing the 4 possible actions.
 
-![Model Structure](Control_System/models/model_2/model_structure.png)
+<p align="center"> 
+<img src="Control_System/models/model_2/model_structure.png">
+</p>
 
 As a result of the training, the queue length is gradually going down until it reaches 1-2 vehicles/pedestrians on average. The agent received a negative reward based on the cumulative waiting time change after the actions taken. 
 
