@@ -1,4 +1,6 @@
-Reinforcement learning is about taking suitable action to maximize reward in a particular situation. While researching the possible applications of such technique, I came across such examples as resource management (learn to allocate and schedule computer resources to waiting jobs, with the objective to minimize the average job slowdown), optimizing chemical reactions (in order to reduce time-consuming and trial-and-error work in a relatively stable environment), etc. However, the idea that resonated with me the most, was creating an intelligent traffic light control system in order to regulate the situation around it, based on the current state.	Modern society relies heavily on vehicles to get around and the amount of traffic steadily increases over the last decades, however, our infrastructure is struggling to keep up. It is very common for a vehicle to arrive at an intersection and just stand there, waiting to pass, with no other traffic around. Such mismanagement gets amplified even more during the rush hour. Two solutions are possible in order to address this issue:
+Reinforcement learning is about taking suitable action to maximize reward in a particular situation. While researching the possible applications of such technique, I came across such examples as resource management (learn to allocate and schedule computer resources to waiting jobs, with the objective to minimize the average job slowdown), optimizing chemical reactions (in order to reduce time-consuming and trial-and-error work in a relatively stable environment), etc. However, the idea that resonated with me the most, was creating an intelligent traffic light control system in order to regulate the situation around it, based on the current state.
+
+Modern society relies heavily on vehicles to get around and the amount of traffic steadily increases over the last decades, however, our infrastructure is struggling to keep up. It is very common for a vehicle to arrive at an intersection and just stand there, waiting to pass, with no other traffic around. Such mismanagement gets amplified even more during the rush hour. Two solutions are possible in order to address this issue:
 
 - Expand the roads to handle the traffic flow (this, however, is time consuming and requires a lot of funds, limiting the throughput during construction)
 - Improve the traffic signal controllers (a more desirable approach, because it reuses the current equipment and has lower cost)
@@ -38,6 +40,10 @@ A deep neural network is built using Tensorflow 2.0 and Keras in order to map a 
 ![Model Structure](Control_System/models/model_2/model_structure.png)
 
 As a result of the training, the queue length is gradually going down until it reaches 1-2 vehicles/pedestrians on average. The agent received a negative reward based on the cumulative waiting time change after the actions taken. 
+
+Before Training            |  After training
+:-------------------------:|:-------------------------:
+![Before Training](https://media.giphy.com/media/L4UFv3basTyRfOOegk/giphy.gif)|  ![After Training](https://media.giphy.com/media/SVZeY3JK4FXr0Qd7q0/giphy.gif)
 
 #### GETTING STARTED:
 
