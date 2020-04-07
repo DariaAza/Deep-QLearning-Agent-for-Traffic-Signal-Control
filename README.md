@@ -49,6 +49,8 @@ Before Training            |  After training
 :-------------------------:|:-------------------------:
 ![Before Training](https://media.giphy.com/media/L4UFv3basTyRfOOegk/giphy.gif)|  ![After Training](https://media.giphy.com/media/SVZeY3JK4FXr0Qd7q0/giphy.gif)
 
+A video of me presenting the results of the project can be found [here](https://www.loom.com/share/2b6dada4d69842b1a3b3606dde4f0ce9).
+
 #### GETTING STARTED:
 
 
@@ -121,5 +123,3 @@ The settings used during the testing and contained in the file testing_settings.
 
 *The last section (SETTINGS) has been copied from the readme file [here](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control). The original creator outlined the settings perfectly, and could not have written it better.
 
-
-A video of me presenting the results of the project can be found [here](https://www.loom.com/share/2b6dada4d69842b1a3b3606dde4f0ce9).
