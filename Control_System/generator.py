@@ -28,7 +28,7 @@ class TrafficGenerator:
         gen_steps = np.rint(gen_steps)  # round every value to int -> effective steps when a car will be generated
 
         # produce the file for cars generation, one car per line
-        with open("intersection/ped_episode_routes5.rou.xml", "w") as routes:
+        with open("ped_intersection/ped_episode_routes5.rou.xml", "w") as routes:
             print("""<routes>
             <vType accel="1.0" decel="4.5" id="standard_car" length="5.0" minGap="2.5" maxSpeed="25" sigma="0.5" />
             <vType id="DEFAULT_PEDTYPE" vClass="pedestrian" color="blue"/>
@@ -47,9 +47,9 @@ class TrafficGenerator:
 
             for v_counter, step in enumerate(gen_steps):
                 ped_or_car = np.random.uniform()
-                if ped_or_car < 0.2:
-                    straight_or_turn = np.random.uniform()
-                    if straight_or_turn < 0.75:  # choose direction: straight or turn - 75% of times the car goes straight
+                if ped_or_car < 0.2: # 20% of traffic will be pedestrians
+                    straight_or_turn = np.random.uniform() # 75% of pedestrians are moving straight
+                    if straight_or_turn < 0.75:  # choose direction: straight or turn - 75% of times the person goes straight
                         route_straight = np.random.randint(1, 5)
                         if route_straight == 1:
                             print('    <person id="person_%i" depart="%s" > ' % (v_counter, step), file=routes)

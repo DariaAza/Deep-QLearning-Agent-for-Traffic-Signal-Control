@@ -132,12 +132,12 @@ class Simulation:
             steps_todo -= 1
             queue_length = self._get_queue_length()
             self._sum_queue_length += queue_length
-            self._sum_waiting_time += queue_length # 1 step while wating in queue means 1 second waited, for each car, therefore queue_lenght == waited_seconds
+            self._sum_waiting_time += queue_length # 1 step while wating in queue means 1 second waited, for each car, therefore queue_length == waited_seconds
 
 
     def _collect_waiting_times(self):
         """
-        Retrieve the waiting time of every car in the incoming roads
+        Retrieve the waiting time of every car or pedestrian in the incoming roads
         """
         incoming_roads = ["E2TL", "N2TL", "W2TL", "S2TL"]
         car_list = traci.vehicle.getIDList()
@@ -146,11 +146,11 @@ class Simulation:
         for v_id in final_list:
             if 'person' in v_id:
                 wait_time = traci.person.getWaitingTime(v_id)
-                road_id = traci.person.getRoadID(v_id)  # get the road id where the car is located
+                road_id = traci.person.getRoadID(v_id)  # get the road id where the pedestrian is located
                 if road_id in incoming_roads:  # consider only the waiting times of cars in incoming roads
                     self._waiting_times[v_id] = wait_time
                 else:
-                    if v_id in self._waiting_times:  # a car that was tracked has cleared the intersection
+                    if v_id in self._waiting_times:  # a pedestrian that was tracked has cleared the intersection
                         del self._waiting_times[v_id]
             else:
                 wait_time = traci.vehicle.getAccumulatedWaitingTime(v_id)
@@ -205,7 +205,14 @@ class Simulation:
         halt_S = traci.edge.getLastStepHaltingNumber("S2TL")
         halt_E = traci.edge.getLastStepHaltingNumber("E2TL")
         halt_W = traci.edge.getLastStepHaltingNumber("W2TL")
-        queue_length = halt_N + halt_S + halt_E + halt_W
+        
+        ped_list = traci.person.getIDList()
+        ped_queue = 0
+        for ped in ped_list:
+            if traci.person.getSpeed(ped) == 0:
+                ped_queue += 1
+
+        queue_length = halt_N + halt_S + halt_E + halt_W + ped_queue
         return queue_length
 
 
@@ -361,7 +368,7 @@ class Simulation:
         Save the stats of the episode to plot the graphs at the end of the session
         """
         self._reward_store.append(self._sum_neg_reward)  # how much negative reward in this episode
-        self._cumulative_wait_store.append(self._sum_waiting_time)  # total number of seconds waited by cars in this episode
+        self._cumulative_wait_store.append(self._sum_waiting_time)  # total number of seconds waited by cars and pedestrians in this episode
         self._avg_queue_length_store.append(self._sum_queue_length / self._max_steps)  # average number of queued cars per step, in this episode
 
 

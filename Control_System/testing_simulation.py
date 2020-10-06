@@ -167,7 +167,14 @@ class Simulation:
         halt_S = traci.edge.getLastStepHaltingNumber("S2TL")
         halt_E = traci.edge.getLastStepHaltingNumber("E2TL")
         halt_W = traci.edge.getLastStepHaltingNumber("W2TL")
-        queue_length = halt_N + halt_S + halt_E + halt_W
+
+        ped_list = traci.person.getIDList()
+        ped_queue = 0
+        for ped in ped_list:
+            if traci.person.getSpeed(ped) == 0:
+                ped_queue += 1
+
+        queue_length = halt_N + halt_S + halt_E + halt_W + ped_queue
         return queue_length
 
 
