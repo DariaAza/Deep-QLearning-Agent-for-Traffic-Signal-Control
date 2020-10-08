@@ -227,7 +227,7 @@ class Simulation:
         for ped_id in ped_list:
             ped_lane_pos = traci.person.getLanePosition(ped_id)
             ped_lane_id = traci.person.getRoadID(ped_id)
-            ped_lane_pos = 752 - ped_lane_pos
+            ped_lane_pos = 752 - ped_lane_pos # inversion of lane pos, so if pedestrian is close to the traffic light -> lane_pos = 0 --- 752 = max len of a road
             if ped_lane_pos < 9:
                 ped_lane_cell = 0
             elif ped_lane_pos < 16:
@@ -267,7 +267,7 @@ class Simulation:
                 ped_position = ped_lane_cell
                 valid_ped = True
             else:
-                valid_ped = False  # flag for not detecting cars crossing the intersection or driving away from it
+                valid_ped = False  # flag for not detecting pedestrians crossing the intersection or moving away from it
 
             if valid_ped:
                 state[ped_position] = 1
@@ -275,7 +275,7 @@ class Simulation:
         for car_id in car_list:
             lane_pos = traci.vehicle.getLanePosition(car_id)
             lane_id = traci.vehicle.getLaneID(car_id)
-            lane_pos = 752 - lane_pos  # inversion of lane pos, so if the car is close to the traffic light -> lane_pos = 0 --- 750 = max len of a road
+            lane_pos = 752 - lane_pos  # inversion of lane pos, so if the car is close to the traffic light -> lane_pos = 0 --- 752 = max len of a road
 
             # distance in meters from the traffic light -> mapping into cells
             if lane_pos < 9:
